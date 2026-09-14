@@ -1,8 +1,8 @@
-# Mihomo 全局覆写脚本
+# Clash Party 全局覆写脚本
 
 [English](./README.md) | 简体中文
 
-一个面向 Mihomo Party 和 Clash Verge Rev 的数据驱动型全局覆写脚本。它在保留当前订阅节点的基础上，统一生成 DNS、代理组、远程规则集和分流规则。
+一个面向 Clash Party 和 Clash Verge Rev 的数据驱动型全局覆写脚本，两者均使用 Mihomo 内核。它在保留当前订阅节点的基础上，统一生成 DNS、代理组、远程规则集和分流规则。
 
 ## 特性
 
@@ -15,14 +15,14 @@
 
 ## 文件
 
-- `mihomo-global-override.js`：可以导入客户端的正式覆写脚本
+- `clash-party-global-override.js`：可以导入客户端的正式覆写脚本
 
 本仓库不会提交本地备份、测试文件或带订阅地址的私人版本。
 
 ## 使用方法
 
-1. 下载 `mihomo-global-override.js`。
-2. 在 Mihomo Party 的覆写功能，或 Clash Verge Rev 的全局扩展脚本功能中导入文件。
+1. 下载 `clash-party-global-override.js`。
+2. 在 Clash Party 的覆写功能，或 Clash Verge Rev 的全局扩展脚本功能中导入文件。
 3. 确保当前配置本身至少包含一个节点或一个 `proxy-provider`。
 4. 启用脚本并更新配置。
 
@@ -99,7 +99,7 @@ RULE-SET,OpenAI,OpenAI
 安装 Node.js 后，可以执行语法检查：
 
 ```powershell
-node --check .\mihomo-global-override.js
+node --check .\clash-party-global-override.js
 ```
 
 语法检查只能证明 JavaScript 可以解析。修改代理组或规则集后，还应确认组名没有重复、`RULE-SET` 引用存在，并且最后保留兜底规则。

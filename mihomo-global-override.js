@@ -7,9 +7,25 @@
 
 const ONE_DAY = 24 * 60 * 60;
 
-// 公开版本不内置任何订阅地址，直接复用宿主配置中的节点和 provider。
-// 如果需要合并私人订阅，请只在本地副本中添加，切勿提交访问凭据。
-const additionalProxyProviders = {};
+// 额外订阅占位：使用前请替换 URL，切勿把真实订阅凭据提交到公开仓库。
+const additionalProxyProviders = {
+  "p1": {
+    "type": "http",
+    "url": "https://www.1.com",
+    "interval": ONE_DAY,
+    "override": {
+      "additional-prefix": "p1 |"
+    }
+  },
+  "p2": {
+    "type": "http",
+    "url": "https://www.2.com",
+    "interval": ONE_DAY,
+    "override": {
+      "additional-prefix": "p2 |"
+    }
+  }
+};
 
 const generalConfig = {
   "mixed-port": 7890,
@@ -28,8 +44,9 @@ function assertHasProxySource(config) {
   const providers = isRecord(config["proxy-providers"])
     ? config["proxy-providers"]
     : {};
+  const additionalProviderCount = Object.keys(additionalProxyProviders).length;
 
-  if (proxyCount === 0 && Object.keys(providers).length === 0) {
+  if (proxyCount === 0 && Object.keys(providers).length === 0 && additionalProviderCount === 0) {
     throw new Error("配置文件中未找到任何代理");
   }
 }
@@ -240,30 +257,18 @@ const blackmatrixRuleDefinitions = [
   ["Emby"],
   ["Gemini"],
   ["Claude"],
-  ["Github", "GitHub", "GitHub_No_Resolve.yaml"]
+  ["Github", "GitHub", "GitHub_No_Resolve.yaml"],
+  ["Global"],
+  ["China"]
 ];
 
 // 规则集名称是 rules 中 RULE-SET 的外键；改名时两边必须同步。
-const ruleProviders = Object.fromEntries([
-  ...blackmatrixRuleDefinitions.map((definition) => {
+const ruleProviders = Object.fromEntries(
+  blackmatrixRuleDefinitions.map((definition) => {
     const [name] = definition;
     return [name, createBlackmatrixRuleProvider(...definition)];
-  }),
-  [
-    "Global",
-    createRuleProvider(
-      "Global",
-      "https://cdn.jsdelivr.net/gh/0xWans/my-backup@master/clash/rule/Global.yaml"
-    )
-  ],
-  [
-    "ChinaCustom",
-    createRuleProvider(
-      "ChinaCustom",
-      "https://cdn.jsdelivr.net/gh/0xWans/my-backup@master/clash/rule/ChinaCustom.yaml"
-    )
-  ]
-]);
+  })
+);
 
 function parseRuleLines(text) {
   return text
@@ -273,8 +278,21 @@ function parseRuleLines(text) {
     .filter(Boolean);
 }
 
-// 规则按顺序从上到下匹配，因此越具体、优先级越高的规则越靠前。
-const rules = [
+function getRulePolicy(rule) {
+  const fields = rule.split(",");
+  const type = fields[0];
+
+  if (type === "MATCH") return fields[1];
+  if (["AND", "OR", "NOT"].includes(type)) return fields[fields.length - 1];
+  return fields[2];
+}
+
+function dedupeRules(ruleList) {
+  return [...new Set(ruleList)];
+}
+
+// 旧规则库会在下方重新分层排序；不要直接把服务规则追加到它的末尾。
+const legacyRules = [
   // 自定义规则
 
   "DOMAIN-KEYWORD,doubao,DIRECT",
@@ -9555,11 +9573,12 @@ DOMAIN-SUFFIX,picjs.xyz,Proxy
 DOMAIN-SUFFIX,cn,DIRECT
 GEOIP,cn,DIRECT,resolve
 `),
-  
-"RULE-SET,Telegram,Telegram",
+];
+
+const serviceRules = [
+  "RULE-SET,Apple,Apple",
+  "RULE-SET,Telegram,Telegram",
   "RULE-SET,YouTube,YouTube",
-  "RULE-SET,Global,AUTO",
-  "RULE-SET,ChinaCustom,DIRECT",
   "RULE-SET,BiliBili,BiliBili",
   "RULE-SET,TikTok,TikTok",
   "RULE-SET,Spotify,Spotify",
@@ -9574,6 +9593,26 @@ GEOIP,cn,DIRECT,resolve
   "RULE-SET,Emby,Emby",
   "RULE-SET,Gemini,Gemini",
   "RULE-SET,Claude,Claude",
-  "RULE-SET,Github,HK",
-  "MATCH,Proxy"
+  "RULE-SET,Github,HK"
 ];
+
+const firstRejectIndex = legacyRules.indexOf("DOMAIN-KEYWORD,admarvel,REJECT");
+if (firstRejectIndex === -1) {
+  throw new Error("无法定位内置广告规则的起点");
+}
+
+// 顺序即优先级：本地例外 > 拦截 > 服务分流 > 中国直连 > 旧规则 > 全局兜底。
+const priorityRules = legacyRules.slice(0, firstRejectIndex);
+const remainingLegacyRules = legacyRules.slice(firstRejectIndex);
+const rejectRules = remainingLegacyRules.filter((rule) => getRulePolicy(rule) === "REJECT");
+const normalLegacyRules = remainingLegacyRules.filter((rule) => getRulePolicy(rule) !== "REJECT");
+
+const rules = dedupeRules([
+  ...priorityRules,
+  ...rejectRules,
+  ...serviceRules,
+  "RULE-SET,China,DIRECT",
+  ...normalLegacyRules,
+  "RULE-SET,Global,AUTO",
+  "MATCH,Proxy"
+]);

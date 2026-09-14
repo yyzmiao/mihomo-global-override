@@ -6,12 +6,12 @@ A data-driven global override script for Clash Party and Clash Verge Rev, both p
 
 ## Features
 
-- Contains no subscription URLs, proxy nodes, or access credentials
+- Contains only `p1` / `p2` placeholder URLs, never real subscription credentials
 - Preserves `proxies` and `proxy-providers` from the active profile
 - Combines `select` and `url-test` groups for service- and region-based routing
 - Generates repetitive configuration from reusable factory functions and data tables
 - Uses fake-IP DNS mode with common LAN and sign-in compatibility exclusions
-- Evaluates specific inline rules first, remote rule sets next, and `MATCH` as the final fallback
+- Prioritizes local exceptions and blocking, then service rule sets, China routing, legacy rules, and final fallbacks
 
 ## File
 
@@ -23,8 +23,9 @@ Local backups, test helpers, and private variants containing subscription detail
 
 1. Download `mihomo-global-override.js`.
 2. Import it through the override feature in Clash Party or the global extension script feature in Clash Verge Rev.
-3. Make sure the active profile already contains at least one proxy or one `proxy-provider`.
-4. Enable the script and refresh the profile.
+3. Replace the `p1` / `p2` placeholder URLs, or remove those entries if the active profile already supplies your proxies.
+4. Make sure at least one proxy source remains between the active profile and `additionalProxyProviders`.
+5. Enable the script and refresh the profile.
 
 The client invokes the script through its `main` entry point:
 
@@ -35,7 +36,7 @@ function main(config) {
 }
 ```
 
-If the incoming profile has no proxy source, the script throws a descriptive error instead of producing an unusable configuration.
+If both placeholder providers are removed and the incoming profile has no proxy source, the script throws a descriptive error instead of producing an unusable configuration.
 
 ## How It Works
 
@@ -92,7 +93,7 @@ The service group name, rule provider name, and `RULE-SET` reference must remain
 
 Never commit a proxy subscription URL to Git. These URLs often contain bearer-like tokens that grant access to account-specific proxy nodes. If one is exposed, rotate it through the provider immediately.
 
-For private multi-subscription setups, keep a `*.local.js` variant that is not tracked by Git, or manage the subscriptions in the client profile. `additionalProxyProviders` is deliberately empty in the public script.
+The public script keeps `https://www.1.com` and `https://www.2.com` only as visible `p1` / `p2` placeholders. Replace them in an untracked `*.local.js` variant, or manage subscriptions in the client profile. Do not commit the replacements.
 
 ## Local Validation
 

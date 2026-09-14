@@ -1,0 +1,11 @@
+# Local backups and private variants
+*.bak.js
+*.local.js
+
+# Local verification helper
+验证重构.js
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/

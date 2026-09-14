@@ -1,74 +1,76 @@
 # Mihomo Global Override
 
-一个面向 Mihomo Party 和 Clash Verge Rev 的数据驱动型全局覆写脚本。它在保留当前订阅节点的基础上，统一生成 DNS、代理组、远程规则集和分流规则。
+English | [简体中文](./README.zh-CN.md)
 
-## 特性
+A data-driven global override script for Mihomo Party and Clash Verge Rev. It preserves the proxy sources from your active profile while consistently generating DNS settings, proxy groups, remote rule providers, and routing rules.
 
-- 不包含订阅地址、节点或访问凭据
-- 保留当前配置中的 `proxies` 与 `proxy-providers`
-- 使用 `select` 和 `url-test` 组合服务策略与地区策略
-- 使用工厂函数和数据表生成重复配置，便于维护
-- 使用 fake-IP DNS 模式，并保留常见局域网与登录兼容项
-- 内置具体规则优先、远程规则集其次、`MATCH` 最后兜底
+## Features
 
-## 文件
+- Contains no subscription URLs, proxy nodes, or access credentials
+- Preserves `proxies` and `proxy-providers` from the active profile
+- Combines `select` and `url-test` groups for service- and region-based routing
+- Generates repetitive configuration from reusable factory functions and data tables
+- Uses fake-IP DNS mode with common LAN and sign-in compatibility exclusions
+- Evaluates specific inline rules first, remote rule sets next, and `MATCH` as the final fallback
 
-- `mihomo-global-override.js`：可以导入客户端的正式覆写脚本
+## File
 
-本仓库不会提交本地备份、测试文件或带订阅地址的私人版本。
+- `mihomo-global-override.js` — the production override script to import into your client
 
-## 使用方法
+Local backups, test helpers, and private variants containing subscription details are intentionally excluded from this repository.
 
-1. 下载 `mihomo-global-override.js`。
-2. 在 Mihomo Party 的覆写功能，或 Clash Verge Rev 的全局扩展脚本功能中导入文件。
-3. 确保当前配置本身至少包含一个节点或一个 `proxy-provider`。
-4. 启用脚本并更新配置。
+## Usage
 
-脚本由客户端调用：
+1. Download `mihomo-global-override.js`.
+2. Import it through the override feature in Mihomo Party or the global extension script feature in Clash Verge Rev.
+3. Make sure the active profile already contains at least one proxy or one `proxy-provider`.
+4. Enable the script and refresh the profile.
+
+The client invokes the script through its `main` entry point:
 
 ```js
 function main(config) {
-  // 修改订阅解析得到的配置对象
+  // Modify the parsed profile configuration.
   return config;
 }
 ```
 
-如果传入配置不包含任何代理来源，脚本会抛出明确错误，避免生成无法工作的配置。
+If the incoming profile has no proxy source, the script throws a descriptive error instead of producing an unusable configuration.
 
-## 工作原理
+## How It Works
 
-客户端首先把订阅解析为 JavaScript 对象，然后将它传入 `main(config)`。脚本对不同字段采用两种策略：
+The client parses the active profile into a JavaScript object and passes it to `main(config)`. The script applies two update strategies:
 
-- `proxy-providers` 使用对象展开语法合并，因此已有 provider 会被保留。
-- `dns`、`proxy-groups`、`rule-providers` 和 `rules` 被统一替换，确保分流结果稳定。
+- `proxy-providers` is merged with object spread syntax, preserving providers from the active profile.
+- `dns`, `proxy-groups`, `rule-providers`, and `rules` are replaced to make routing behavior deterministic.
 
-代理组分为两层：
+Proxy groups are organized into two layers:
 
-- 服务组，例如 `OpenAI`、`YouTube`、`Netflix`，负责决定某类流量采用什么策略。
-- 地区组，例如 `HK`、`JP`、`US`，通过节点名称过滤和延迟测试选择节点。
+- Service groups such as `OpenAI`, `YouTube`, and `Netflix` decide which policy handles a category of traffic.
+- Region groups such as `HK`, `JP`, and `US` filter proxies by name and use latency testing to select a node.
 
-规则按从上到下的顺序匹配。比如：
+Rules are evaluated from top to bottom. For example:
 
 ```text
 RULE-SET,OpenAI,OpenAI
 ```
 
-表示使用名为 `OpenAI` 的规则集，命中后交给同名代理组。最后的 `MATCH,Proxy` 负责接住所有未命中流量。
+This applies the rule provider named `OpenAI` and routes matches through the proxy group with the same name. The final `MATCH,Proxy` rule handles anything not matched earlier.
 
-## 代码结构
+## Code Tour
 
-建议按照下面的顺序阅读源码：
+The source is easiest to understand in this order:
 
-1. `main(config)`：了解覆写脚本的入口和合并策略。
-2. `dnsConfig`：了解 fake-IP、nameserver 和过滤项。
-3. `createSelectGroup()`、`createRegionGroup()`：了解如何抽取重复结构。
-4. `serviceGroupDefinitions`、`regionGroupDefinitions`：了解数据驱动配置。
-5. `createRuleProvider()`：了解远程规则集如何生成。
-6. `rules`：了解规则顺序和最终兜底。
+1. `main(config)` — entry point and merge strategy
+2. `dnsConfig` — fake-IP, nameservers, and compatibility exclusions
+3. `createSelectGroup()` and `createRegionGroup()` — reusable configuration factories
+4. `serviceGroupDefinitions` and `regionGroupDefinitions` — data-driven group definitions
+5. `createRuleProvider()` — remote rule provider generation
+6. `rules` — ordered routing rules and the final fallback
 
-## 自定义代理组
+## Adding a Service Group
 
-新增服务组时，优先在 `serviceGroupDefinitions` 中添加定义，而不是复制一整个对象。例如：
+Add a definition to `serviceGroupDefinitions` instead of copying an entire group object:
 
 ```js
 [
@@ -78,30 +80,30 @@ RULE-SET,OpenAI,OpenAI
 ]
 ```
 
-随后添加对应的 rule provider，并在 `rules` 中加入：
+Then add the corresponding rule provider and reference it in `rules`:
 
 ```js
 "RULE-SET,MyService,MyService"
 ```
 
-这三个名称必须保持一致，否则规则会引用不存在的规则集或代理组。
+The service group name, rule provider name, and `RULE-SET` reference must remain consistent.
 
-## 安全说明
+## Security
 
-不要把机场订阅 URL 直接提交到 Git。订阅 URL 通常带有能够访问账户节点的令牌，泄露后应立即在服务商后台重置。
+Never commit a proxy subscription URL to Git. These URLs often contain bearer-like tokens that grant access to account-specific proxy nodes. If one is exposed, rotate it through the provider immediately.
 
-如需本地合并额外订阅，请制作一个不会被 Git 跟踪的 `*.local.js` 文件，或让客户端在基础配置中管理订阅。本仓库中的 `additionalProxyProviders` 有意保持为空。
+For private multi-subscription setups, keep a `*.local.js` variant that is not tracked by Git, or manage the subscriptions in the client profile. `additionalProxyProviders` is deliberately empty in the public script.
 
-## 本地检查
+## Local Validation
 
-安装 Node.js 后，可以执行语法检查：
+With Node.js installed, run a syntax check:
 
 ```powershell
 node --check .\mihomo-global-override.js
 ```
 
-语法检查只能证明 JavaScript 可以解析。修改代理组或规则集后，还应确认：组名没有重复、`RULE-SET` 引用存在，并且最后保留兜底规则。
+A syntax check only proves that the JavaScript can be parsed. After changing groups or providers, also verify that group names are unique, every `RULE-SET` reference exists, and the final fallback rule remains in place.
 
-## 说明
+## Disclaimer
 
-远程规则集来自脚本中声明的第三方项目，其可用性和许可由对应项目维护者负责。使用前请根据自己的网络环境检查 DNS、IPv6、监听端口和分流策略。
+Remote rule sets are maintained by the third-party projects referenced in the source. Their availability and licensing remain the responsibility of their respective maintainers. Review DNS, IPv6, listening-port, and routing settings for your own environment before use.

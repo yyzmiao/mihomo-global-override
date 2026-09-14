@@ -299,6 +299,7 @@ const legacyRules = [
   "IP-CIDR,154.37.218.17/32,DIRECT",
   ...parseRuleLines(String.raw`
 DOMAIN-SUFFIX,acl4.ssr,DIRECT
+DOMAIN-KEYWORD,zhihuishu,DIRECT
 DOMAIN-KEYWORD,weixin,DIRECT
 DOMAIN-KEYWORD,unipus,DIRECT
 DOMAIN-SUFFIX,jianying.com,DIRECT

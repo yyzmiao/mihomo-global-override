@@ -1,5 +1,5 @@
 /**
- * Clash Party / Clash Verge Rev 全局覆写脚本（Mihomo 内核）
+ * Mihomo 全局覆写脚本，适用于 Clash Party / Clash Verge Rev
  *
  * 宿主程序会调用 main(config)，传入订阅解析后的配置对象。
  * 本脚本在该对象上合并或替换配置，最后必须返回处理后的对象。

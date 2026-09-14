@@ -1,4 +1,4 @@
-# Clash Party Global Override
+# Mihomo Global Override
 
 English | [简体中文](./README.zh-CN.md)
 
@@ -15,13 +15,13 @@ A data-driven global override script for Clash Party and Clash Verge Rev, both p
 
 ## File
 
-- `clash-party-global-override.js` — the production override script to import into your client
+- `mihomo-global-override.js` — the production override script to import into your client
 
 Local backups, test helpers, and private variants containing subscription details are intentionally excluded from this repository.
 
 ## Usage
 
-1. Download `clash-party-global-override.js`.
+1. Download `mihomo-global-override.js`.
 2. Import it through the override feature in Clash Party or the global extension script feature in Clash Verge Rev.
 3. Make sure the active profile already contains at least one proxy or one `proxy-provider`.
 4. Enable the script and refresh the profile.
@@ -99,7 +99,7 @@ For private multi-subscription setups, keep a `*.local.js` variant that is not t
 With Node.js installed, run a syntax check:
 
 ```powershell
-node --check .\clash-party-global-override.js
+node --check .\mihomo-global-override.js
 ```
 
 A syntax check only proves that the JavaScript can be parsed. After changing groups or providers, also verify that group names are unique, every `RULE-SET` reference exists, and the final fallback rule remains in place.

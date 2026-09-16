@@ -24,7 +24,7 @@ Local backups, test helpers, and private variants containing subscription detail
 1. Download `mihomo-global-override.js`.
 2. Import it through the override feature in Clash Party or the global extension script feature in Clash Verge Rev.
 3. Replace the `p1` / `p2` placeholder URLs, or remove those entries if the active profile already supplies your proxies.
-4. Make sure at least one proxy source remains between the active profile and `additionalProxyProviders`.
+4. Make sure at least one proxy source remains between the active profile and `proxyProviders`.
 5. Enable the script and refresh the profile.
 
 The client invokes the script through its `main` entry point:
@@ -37,6 +37,16 @@ function main(config) {
 ```
 
 If both placeholder providers are removed and the incoming profile has no proxy source, the script throws a descriptive error instead of producing an unusable configuration.
+
+## Official Documentation
+
+If your client's interface differs from this guide, or you want to learn more about a configuration option, refer to the corresponding official documentation:
+
+- [Mihomo configuration documentation](https://wiki.metacubex.one/en/config/) — DNS, proxy groups, routing rules, rule providers, and proxy providers
+- [Clash Party override documentation](https://clashparty.org/docs/guide/override) — importing and enabling overrides, including the JavaScript format
+- [Clash Verge Rev extension documentation](https://www.clashverge.dev/guide/extend.html) — global and per-profile extension scripts and their execution order
+
+Client features and menu labels may change between releases. If this guide differs from the official documentation or your current client, follow the official documentation and the interface shown by your installed version.
 
 ## How It Works
 
@@ -93,7 +103,7 @@ The service group name, rule provider name, and `RULE-SET` reference must remain
 
 Never commit a proxy subscription URL to Git. These URLs often contain bearer-like tokens that grant access to account-specific proxy nodes. If one is exposed, rotate it through the provider immediately.
 
-The public script keeps `https://www.1.com` and `https://www.2.com` only as visible `p1` / `p2` placeholders. Replace them in an untracked `*.local.js` variant, or manage subscriptions in the client profile. Do not commit the replacements.
+The public script keeps example URLs only as visible `p1` / `p2` placeholders. Replace them in an untracked `*.local.js` variant, or manage subscriptions in the client profile. Do not commit the replacements.
 
 ## Local Validation
 
